@@ -1,7 +1,7 @@
-6003d64dcc208f8868b44e85f8299880 *DESCRIPTION
+ec724b77547ef0f1699fb3863ec44516 *DESCRIPTION
 8a1c6b2d7ddfdb12b84ecdb131144657 *NAMESPACE
 5786bd05d7bdfc563ff48970b7100da5 *R/Datasets.R
-ff7e015b9b2a5bd52757479a439d1363 *R/DiversityOccu.R
+6900d507beed52a4255e57a70fd539eb *R/DiversityOccu.R
 66c25d85af9898ed83655b712d7ced5a *R/Plotfunctions.R
 065784c2474899b7427e9058771f29e7 *README.md
 06b7aedae7710867d062e691f65aa414 *build/vignette.rds
@@ -13,7 +13,7 @@ c327c50b75840784d8a19a668dee37d6 *data/Dailycov.rda
 303ed9f79e76c6b0ac994eaf9bee34cd *data/sampling.cov.rda
 b9589a7d1ef34afda0924cc8c2f5113d *data/siteCov.rda
 f45a7f75e19c380941b211860e08ef6e *inst/doc/my-vignette.Rmd
-9369a2c0398f81dadd66f2e1c467987e *inst/doc/my-vignette.html
+e1e78a756c8024844f18cc22aecdec8d *inst/doc/my-vignette.html
 2330d7727c6f6aa3571bd1b155bea622 *man/BatOccu.Rd
 a45a66335cf926aa05d105269b28c1d7 *man/Daily_Cov.Rd
 b0361e4b3afb380aba46f7cab53572d7 *man/Dailycov.Rd

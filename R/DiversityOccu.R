@@ -81,7 +81,7 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
     for(i in 1:length(secuencia)) {
       data[[i]] <-c(secuencia2[i]:secuencia[i])
       data[[i]] <- pres[, data[[i]]]
-      data2 <<- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
+      data2 <- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
       models[[i]] <- occu(form, data2)
       dredged[[i]] <- dredge(models[[i]], data2)
       models[[i]] <- get.models(dredged[[i]], 1)[[1]]
@@ -89,7 +89,6 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
       fit<- as.data.frame(fit)
       colnames(fit) = paste("species",c(1:ncol(fit)), sep =".")
     }
-    rm(data2, pos=".GlobalEnv")
   }
 
   result <- list(Covs = sitecov, models = models, fit = fit)
@@ -190,7 +189,7 @@ diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dr
     for(i in 1:length(secuencia)) {
       data[[i]] <-c(secuencia2[i]:secuencia[i])
       data[[i]] <- pres[, data[[i]]]
-      data2 <<- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
+      data2 <- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
       models[[i]] <- occuRN(form, data2)
       dredged[[i]] <- dredge(models[[i]], data2)
       models[[i]] <- get.models(dredged[[i]], 1)[[1]]
@@ -201,7 +200,6 @@ diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dr
       h <- diversity(div, index)
       DF <- cbind(h, div)
     }
-    rm(data2, pos=".GlobalEnv")
   }
 
   result <- list(Covs = sitecov, models = models, Diversity = h, species = DF)
