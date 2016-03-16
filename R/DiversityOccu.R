@@ -1,3 +1,4 @@
+globalVariables(c("data2"))
 #' Fits occupancy models for multiple species detection history
 #'
 #' This function takes a data.frame with multiple detection history from
@@ -20,6 +21,8 @@
 #' occupancy.
 #' @param dredge default = FALSE, if TRUE, for each species, the best occupancy
 #' model will be determined by fitting all possible models and ranking by AICc.
+#' @param pos where to do the removal. By default, uses the current environment.
+#' @param envir the environment to use.
 #' @return A list with the fitted models for each species and the calculated
 #' Alpha diversity for each site.
 #' @details
@@ -44,6 +47,10 @@
 #'
 #' responseplot.occu(batch = BatOccupancy, spp = 15, variable = Burn.intensity.soil)
 #' }
+#' #Dredge for 2 species
+#' A <- batchoccu(pres = BatOccu[,1:6], sitecov = sampling.cov, obscov = Dailycov,
+#' spp = 2, form = ~ Meanhum + Meantemp ~  Burn.intensity.basal +
+#' I(Burn.intensity.basal^2), dredge = TRUE)
 #' @seealso \code{\link[DiversityOccupancy]{diversityoccu}}
 #' @export
 #' @importFrom unmarked occu
@@ -52,14 +59,11 @@
 #' @importFrom MuMIn dredge
 #' @importFrom MuMIn get.models
 #' @importFrom MuMIn AICc
-
 #' @author Derek Corcoran <derek.corcoran.barrios@gmail.com>
 
-batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
-  data2 <- NULL
+batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE,  pos = 1, envir = as.environment(pos)) {
   secuencia <- c(1:spp)*(ncol(pres)/spp)
   secuencia2<-secuencia-(secuencia[1]-1)
-
   models <- list()
   data<- list()
   fit <- list()
@@ -81,14 +85,23 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
     for(i in 1:length(secuencia)) {
       data[[i]] <-c(secuencia2[i]:secuencia[i])
       data[[i]] <- pres[, data[[i]]]
-      data2 <- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
+      #data is a list of class unmarkedFrames from package unmarked.
+      # NM: write to the global environment so he data won't be "lost"
+      assign("data2",  unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov), envir = envir)
       models[[i]] <- occu(form, data2)
+      #selects models
+      # NM: saved this to dredged object rather than overwriting models object
       dredged[[i]] <- dredge(models[[i]], data2)
+      #select the first model
       models[[i]] <- get.models(dredged[[i]], 1)[[1]]
+      #predictions for the best model
       fit[[i]] <- predict(models[[i]], type = "state", newdata = sitecov)$Predicted
       fit<- as.data.frame(fit)
       colnames(fit) = paste("species",c(1:ncol(fit)), sep =".")
+      data[[i]] <- data2
     }
+    # remove temporary data file from the global environment
+    rm(data2, pos= envir)
   }
 
   result <- list(Covs = sitecov, models = models, fit = fit)
@@ -120,6 +133,8 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
 #' @param index Diversity index, one of "shannon", "simpson" or "invsimpson".
 #' @param dredge default = FALSE, if TRUE, for each species, the best occupancy
 #' model will be determined by fitting all possible models and ranking by AICc.
+#' @param pos where to do the removal. By default, uses the current environment.
+#' @param envir the environment to use.
 #' @return A list with the fitted models for each species, the calculated
 #' Alpha diversity for each site, and a dataframe with the abundance of each
 #' species and diversity.
@@ -161,8 +176,7 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
 #' @author Derek Corcoran <derek.corcoran.barrios@gmail.com>
 #' @author Nicole L. Michel
 
-diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dredge = FALSE) {
-  data2 <- NULL
+diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dredge = FALSE,  pos = 1, envir = as.environment(pos)) {
   secuencia <- c(1:spp)*(ncol(pres)/spp)
   secuencia2<-secuencia-(secuencia[1]-1)
 
@@ -189,10 +203,16 @@ diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dr
     for(i in 1:length(secuencia)) {
       data[[i]] <-c(secuencia2[i]:secuencia[i])
       data[[i]] <- pres[, data[[i]]]
-      data2 <- unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov)
+      #data is a list of class unmarkedFrames from package unmarked.
+      # NM: write to the global environment so he data won't be "lost"
+      assign("data2",  unmarkedFrameOccu(y = data[[i]], siteCovs = sitecov, obsCovs = obscov), envir = envir)
       models[[i]] <- occuRN(form, data2)
+      #selects models
+      # NM: saved this to dredged object rather than overwriting models object
       dredged[[i]] <- dredge(models[[i]], data2)
+      #select the first model
       models[[i]] <- get.models(dredged[[i]], 1)[[1]]
+      #predictions for the best model
       div[[i]] <- predict(models[[i]], type = "state", newdata = sitecov)$Predicted
       div<- as.data.frame(div)
       colnames(div) = paste("species",c(1:ncol(div)), sep =".")
@@ -200,6 +220,8 @@ diversityoccu<- function(pres, sitecov, obscov, spp, form, index = "shannon", dr
       h <- diversity(div, index)
       DF <- cbind(h, div)
     }
+    # remove temporary data file from the global environment
+    rm(data2, pos=envir)
   }
 
   result <- list(Covs = sitecov, models = models, Diversity = h, species = DF)
@@ -379,12 +401,11 @@ diversity.predict<- function(model, diverse, new.data, quantile.nth = 0.8 , spec
   models <- model$models[species]
   layers <- list()
   for (i in 1:length(models)){
-    layers [[i]] <- predict(models[[i]], new.data, type = "state")
-    layers [[i]] <- subset(layers[[i]], 1)
+    layers [[i]] <- predict(models[[i]], new.data, type = "state")$Predicted
   }
   glm.model <- glm(diverse$Best_model, data = diverse$dataset)
   diversity.raster<- predict(object = new.data, model = glm.model)
-  layers <- stack (unlist(layers))
+  layers <- stack(unlist(layers))
   desition <- addLayer(layers, diversity.raster)
   nths <- quantile(desition, quantile.nth)
   desition <- unstack(desition)
@@ -397,7 +418,56 @@ diversity.predict<- function(model, diverse, new.data, quantile.nth = 0.8 , spec
   rc<- stack(unlist(rc))
   priority.area <- prod(rc)
   plot(priority.area, colNA="black", legend = FALSE)
-  KML(priority.area, file='priority_area.kml', overwrite = TRUE)
+  KML(priority.area, file='priority_area.kml', overwrite = TRUE, col = "red")
   result <- list(species = layers, diversity.raster = diversity.raster, priority.area = priority.area)
   return(result)
+}
+
+#' Predicts occupancy for all the species in a batchoccupancy class object
+#'
+#' This function takes an batchoccupancy object and predicts occupancy for all species
+#' in new data, either a data.frame or a rasterstack.
+#' @param batch A result from the batchoccu
+#' @param new.data a rasterstack, or a dataframe containing the same variables as
+#' the siteCovs variable in batchoccu
+#' @return a raster stack with predictions
+#' for each species.
+#' @examples
+#' \dontrun{
+#' #Load the data
+#' data("BatOccu")
+#' data("Dailycov")
+#' data("sampling.cov")
+#' data("plumas.stack")
+#'
+#' #Model the abundance for 17 bat species and calculate alpha diversity from that
+#'
+#' BatOccupancy <-batchoccu(pres = BatOccu, sitecov = sampling.cov,
+#' obscov = Dailycov,spp = 17, form = ~ Julian + Meanhum + Meantemp + sdhum +
+#' sdtemp ~ Burn.intensity.soil + I(Burn.intensity.soil^2) +
+#' Burn.intensity.Canopy + I(Burn.intensity.Canopy^2) + Burn.intensity.basal +
+#' I(Burn.intensity.basal^2))
+#'
+#' Occupancy.stack <- occupancy.predict(batch = BatOccupancy, new.data =
+#' plumas.stack)
+#' }
+#' @export
+#' @seealso \code{\link[DiversityOccupancy]{batchoccu}}
+#' @importFrom raster plot
+#' @importFrom raster addLayer
+#' @importFrom raster stack
+#' @importFrom raster subset
+#' @importFrom graphics plot
+#' @author Derek Corcoran <derek.corcoran.barrios@gmail.com>
+
+
+occupancy.predict<- function(batch, new.data) {
+  models <- batch$models
+  layers <- list()
+  for (i in 1:length(models)){
+    layers [[i]] <- predict(models[[i]], new.data, type = "state")
+    layers [[i]] <- subset(layers[[i]], 1)
+  }
+  layers <- stack (unlist(layers))
+  return(layers)
 }
