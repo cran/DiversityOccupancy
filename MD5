@@ -1,7 +1,7 @@
-507a1c044ea431c250bb24a56ac0e324 *DESCRIPTION
-8616d8d68df0930f0a06eecfbe742b19 *NAMESPACE
+99f30635932752227642eb0ec959d65e *DESCRIPTION
+745183e9ec96f8c6be4accf0944608ed *NAMESPACE
 105d9221a5661318c3c03b971b4b30dc *R/Datasets.R
-0f8f8cac88c9ef9cb3118a6fb270de5b *R/DiversityOccu.R
+b16ab95c7ce2e56c79ba13c172145741 *R/DiversityOccu.R
 39bf9e8bf07d1dadff90cbf2af96b3d6 *R/Plotfunctions.R
 065784c2474899b7427e9058771f29e7 *README.md
 06b7aedae7710867d062e691f65aa414 *build/vignette.rds
@@ -10,13 +10,13 @@
 5a00fb1f2824bd26ac4dcf8f6fb84159 *data/IslandBirds.rda
 8f83a92f7a1ca220cedad85b25bfaef6 *data/siteCov.rda
 f45a7f75e19c380941b211860e08ef6e *inst/doc/my-vignette.Rmd
-f3c85d1c0b8afc59c63471f503a2eac1 *inst/doc/my-vignette.html
+b1211fcdc79d063818a1451517568759 *inst/doc/my-vignette.html
 b80e984c8dbc0b36f7b40c50afe3f86d *man/Birdstack.Rd
 a45a66335cf926aa05d105269b28c1d7 *man/Daily_Cov.Rd
 7c3d3f71fc6b4a2eabe5cc8184c0c5a7 *man/IslandBirds.Rd
-33d1445b87ff94f98750e4b26495be23 *man/batchoccu.Rd
+3acc8a18066641b1fee9eeabe4e23163 *man/batchoccu.Rd
 182d1c42b32282fc229ee958fb4700c7 *man/diversity.predict.Rd
-75ff57df226dc3359db0e27f46bbfca3 *man/diversityoccu.Rd
+7bf559497f3c13942e1c31278f282079 *man/diversityoccu.Rd
 f6d4b981edd6905657086e0be01c8656 *man/model.diversity.Rd
 d3fe5bea5ada380f58b1bffb586aeb85 *man/occupancy.predict.Rd
 ce5497f144fd82ce23fd625b5587e3ec *man/responseplot.abund.Rd
