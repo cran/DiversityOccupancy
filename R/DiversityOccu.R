@@ -295,7 +295,10 @@ model.diversity <- function(DivOcc, method = "h", delta = 2, squared = FALSE){
 #' the siteCovs variable in diversityoccu or batchoccu
 #' @param quantile.nth the nth quantile, over which is a goal to keep both diversity
 #' and selected species. default = NULL
-#' @param species, a boolean vector of the species to take into acount
+#' @param species a boolean vector of the species to take into acount
+#' @param kml if TRUE builds a kml file of the selected area and saves it in your
+#' working directry
+#' @param name the name of the kml file if kml is TRUE
 #' @return a data frame with predicted values, or a raster stack with predictions
 #' for each species, a raster for diversity and a raster with the area meeting the
 #' quantile criteria.
@@ -321,6 +324,7 @@ model.diversity <- function(DivOcc, method = "h", delta = 2, squared = FALSE){
 #' # get the area where the first two bird species are most abundant
 #' # and the diversity is high
 #'
+#' library(rgdal)
 #' Selected.area <- diversity.predict(model = BirdDiversity, diverse = glm.Birdiversity,
 #' new.data = Birdstack, quantile.nth = 0.65, species =
 #' c(TRUE, TRUE, FALSE, FALSE, FALSE))
@@ -343,7 +347,7 @@ model.diversity <- function(DivOcc, method = "h", delta = 2, squared = FALSE){
 #' @importFrom raster writeRaster
 #' @author Derek Corcoran <derek.corcoran.barrios@gmail.com>
 
-diversity.predict<- function(model, diverse, new.data, quantile.nth = 0.8 , species) {
+diversity.predict<- function(model, diverse, new.data, quantile.nth = 0.8 , species, kml = TRUE, name = "Priority_Area.kml") {
   models <- model$models[species]
   layers <- list()
   for (i in 1:length(models)){
@@ -364,7 +368,9 @@ diversity.predict<- function(model, diverse, new.data, quantile.nth = 0.8 , spec
   rc<- stack(unlist(rc))
   priority.area <- prod(rc)
   plot(priority.area, colNA="black", legend = FALSE)
-  KML(priority.area, file='priority_area.kml', overwrite = TRUE, col = "red")
+  if (kml == TRUE) {
+    KML(priority.area, file= name, overwrite = TRUE, col = "red")
+  }
   result <- list(species = layers, diversity.raster = diversity.raster, priority.area = priority.area)
   return(result)
 }
