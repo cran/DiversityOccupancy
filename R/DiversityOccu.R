@@ -66,6 +66,7 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
       data2 <- unmarkedFrameOccu(y = data, siteCovs = sitecov, obsCovs = obscov)
       models[[i]] <- occu(form, data2)
       fit[, i] <- suppressWarnings(predict(models[[i]], type = "state", newdata = sitecov))$Predicted
+      print(paste("Species", as.character(i), "ready!"))
     }
   }
   else {
@@ -77,10 +78,92 @@ batchoccu<- function(pres, sitecov, obscov, spp, form, dredge = FALSE) {
       models[[i]] <- eval(getCall(dredged, 1))
       #predictions for the best model
       fit[, i] <- predict(models[[i]], type = "state", newdata = sitecov)$Predicted
+      print(paste("Species", as.character(i), "ready!"))
     }
   }
   result <- list(Covs = sitecov, models = models, fit = fit)
   class(result)<- "batchoccupancy"
+  return(result)
+}
+
+#' Fits occupancy models for multiple species detection history and calculated model average
+#'
+#' This function takes a data.frame with multiple detection history from
+#' various species in different sites, covariates of each site to calculate
+#' occupancy, variables specific to sampling days to calculate probability of
+#' detection. It features an automatic model selection when dredge = TRUE.
+#'
+#' @param pres a data.frame where rows are the sites and columns are a series of
+#' presence-absence observation from multiple species, every species needs to
+#' have the same number of observations.
+#' @param sitecov a data.frame where every row is a site, and every column is a
+#' measurement of that site, such as elevation or slope, this covariates are
+#' usually more constant.
+#' @param obscov a list where every element is a data frame with the daily
+#' covariates for each site, that is a measurement for each day, such as average
+#' temperature of a day, this covariates are usually very .
+#' @param spp the number of species in the pres data.frame
+#' @param form a formula in the format ~ obscov ~ sitcov, the first arguments
+#' will be used to calculate probability of detection and the second part the
+#' occupancy.
+#' @param dredge default = FALSE, if TRUE, for each species, the best occupancy
+#' model will be determined by fitting all possible models and ranking by AICc.
+#' @param delta default = 2, AICc difference used for model averaging
+#' @return A list with the average models for each species.
+#' @details
+#' This function fits the single season occupancy model of MacKenzie et al (2002),
+#' for multiple species and it can automatically select the best model for each
+#' specie based on AICc, ther result of this function is the model average.
+#' @examples
+#' \dontrun{
+#' data("IslandBirds")
+#' data("Daily_Cov")
+#' data("siteCov")
+#' BirdOccupancy <-batchoccuavg(pres = IslandBirds, sitecov = siteCov, obscov =
+#' Daily_Cov, spp =  5, form = ~ Day + Wind + Rain + Noise + Clouds ~
+#' Elev + AgroFo + SecVec + Wetland)
+#' #Summary of averaged model for species 2
+#' summary(BirdOccupancy$models[[2]])
+#' }
+#' #Dredge for all species
+#' @seealso \code{\link[DiversityOccupancy]{diversityoccu}}
+#' @export
+#' @importFrom unmarked occu
+#' @importFrom unmarked unmarkedFrameOccu
+#' @importMethodsFrom unmarked predict
+#' @importFrom MuMIn dredge
+#' @importFrom MuMIn AICc
+#' @importFrom MuMIn model.avg
+#' @importFrom stats getCall
+#' @author Derek Corcoran <derek.corcoran.barrios@gmail.com>
+
+batchoccuavg <- function (pres, sitecov, obscov, spp, form, dredge = FALSE, delta = 2)
+{
+  secuencia <- c(1:spp) * (ncol(pres)/spp)
+  secuencia2 <- secuencia - (secuencia[1] - 1)
+  models <- vector("list", spp)
+  fit <- matrix(NA, nrow(pres), spp)
+  colnames(fit) <- paste("species", 1:spp, sep = ".")
+  if (dredge == FALSE) {
+    for (i in 1:length(secuencia)) {
+      data <- pres[, secuencia2[i]:secuencia[i]]
+      data2 <- unmarkedFrameOccu(y = data, siteCovs = sitecov,
+                                 obsCovs = obscov)
+      models[[i]] <- occu(form, data2)
+      print(paste("Species", as.character(i), "ready!"))
+    }
+  }
+  else {
+    for (i in 1:length(secuencia)) {
+      data <- pres[, secuencia2[i]:secuencia[i]]
+      data2 <- unmarkedFrameOccu(y = data, siteCovs = sitecov,
+                                 obsCovs = obscov)
+      models[[i]] <- model.avg(suppressWarnings(dredge(occu(form, data2))), delta < delta)
+      print(paste("Species", as.character(i), "ready!"))
+    }
+  }
+  result <- list(Covs = sitecov, models = models)
+  class(result) <- "batchoccupancyavg"
   return(result)
 }
 
@@ -163,6 +246,7 @@ diversityoccu <- function(pres, sitecov, obscov, spp, form, index = "shannon", d
       data2 <- unmarkedFrameOccu(y = data, siteCovs = sitecov, obsCovs = obscov)
       models[[i]] <- occuRN(form, data2)
       div[, i] <- suppressWarnings(predict(models[[i]], type = "state", newdata = sitecov))$Predicted
+      print(paste("Species", as.character(i), "ready!"))
     }
   } else {
     for(i in 1:length(secuencia)) {
@@ -173,6 +257,7 @@ diversityoccu <- function(pres, sitecov, obscov, spp, form, index = "shannon", d
       models[[i]] <- eval(getCall(dredged, 1))
       #predictions for the best model
       div[, i] <- predict(models[[i]], type = "state", newdata = sitecov)$Predicted
+      print(paste("Species", as.character(i), "ready!"))
     }
   }
   h <- diversity(div, index)
